@@ -166,11 +166,12 @@ def main():
     #if choice =='Auto':
         #st.subheader("Upload your Data")
         
-        
+    global data    
     data = st.file_uploader("",type=["csv","txt"])
-    
+    data.seek(0)
     if data is not None:
         df=pd.read_csv(data)
+        
         df.fillna(df.mean(), inplace=True)
         st.dataframe(df.head(100))
         #start_row = st.slider('Start row', 0, n_rows - max_rows)
