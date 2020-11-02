@@ -168,7 +168,7 @@ def main():
         
     global data    
     data = st.file_uploader("",type=["csv","txt"])
-    data.seek(0)
+    
     if data is not None:
         df=pd.read_csv(data)
         
