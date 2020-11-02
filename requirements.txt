@@ -5,6 +5,6 @@ sklearn
 matplotlib
 datetime
 seaborn
-itertools ==2.0.0
+itertools ==2.0
 statsmodels
 time
