@@ -4,10 +4,7 @@ numpy
 sklearn
 matplotlib
 datetime
-dateutil
 seaborn
 itertools
 statsmodels
 time
-datefinder
-dateparser
