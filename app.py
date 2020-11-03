@@ -500,7 +500,7 @@ def main():
                                 model_rmse.append(rmse)
                                 feat.append(final_features)
                                 
-                        st.dataframe(pd.DataFrame(zip(model_names_adv,feat,model_r2,model_mse,model_rmse),columns =['Model Name','Features','R-Square','MAPE','RMSE']).sort_values('Model R-Square',ascending=False))
+                        st.dataframe(pd.DataFrame(zip(model_names_adv,feat,model_r2,model_mse,model_rmse),columns =['Model Name','Features','R-Square','MAPE','RMSE']).sort_values('R-Square',ascending=False))
                         st.text(len(model_names_adv))       
                         #result_df = pd.DataFrame(zip(data,names=["Model","Model_intercept", "Features", "r2_score", "MSE","RMSE"]))
                         #st.dataframe(all_combinations.head())
