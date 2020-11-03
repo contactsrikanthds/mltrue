@@ -167,10 +167,11 @@ def main():
         #st.subheader("Upload your Data")
         
     global data    
-    data = st.file_uploader("",type=["csv","txt"])
+    uploaded_file = st.file_uploader("",type=["csv","txt"])
     
-    if data is not None:
-        df=pd.read_csv(data,engine='python')
+    if uploaded_file is not None:
+        uploaded_file.seek(0)
+        df=pd.read_csv(uploaded_file,low_memory=False)
         
         df.fillna(df.mean(), inplace=True)
         st.dataframe(df.head(100))
