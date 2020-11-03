@@ -170,7 +170,7 @@ def main():
     data = st.file_uploader("",type=["csv","txt"])
     
     if data is not None:
-        df=pd.read_csv(data,delim_whitespace=True)
+        df=pd.read_csv(data,engine='python')
         
         df.fillna(df.mean(), inplace=True)
         st.dataframe(df.head(100))
