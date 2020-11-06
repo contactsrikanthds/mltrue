@@ -170,7 +170,7 @@ def main():
     data = st.file_uploader("",type=["csv","txt"])
     
     if data is not None:
-        data.seek(0)
+        data.seek(0)# change version V1.0
         df=pd.read_csv(data)
         df.fillna(df.mean(), inplace=True)
         st.dataframe(df.head(100))
@@ -181,7 +181,7 @@ def main():
         for percent_complete in range(100):
             time.sleep(0.01)
             my_bar.progress(percent_complete + 1)
-        if st.checkbox("TIme Series"):
+        if st.checkbox("Time Series"):
             st.subheader("Select Date Column")
             all_columns = df.columns
             selected_columns_time = st.multiselect("Select Columns",all_columns)
@@ -281,229 +281,237 @@ def main():
                 #result_df = pd.DataFrame(zip(data,names=["Model","Model_intercept", "Features", "r2_score", "MSE","RMSE"]))
                 #st.dataframe(all_combinations.head())
 
-        else:
-                        
-            if st.checkbox("Select ID columns to remove"):
-                all_columns = df.columns
-                global selected_columns
-                selected_columns = st.multiselect("Select Columns",all_columns)
-                new_df = df.drop(columns=selected_columns)
-                st.dataframe(new_df)
+        elif st.subheader("Select ID columns to remove"):
+            ###Change Performed V 1.0
+            all_columns = df.columns
+            global selected_columns
+            selected_columns = st.multiselect("Select Columns",all_columns)
+            new_df = df.drop(columns=selected_columns)
+            st.dataframe(new_df)
 
-            if st.checkbox("Select Target columns"):
-                all_columns = new_df.columns
-                global selected_Target_columns
-                selected_Target_columns = st.multiselect(" ",all_columns)
-                X = new_df.drop(columns=selected_Target_columns)
-                X.replace(np.nan,0)
-                
-                #X.drop(lambda x: x if (x.nunique()>10))
-                
-                categorical_feature_mask = X.dtypes==object
-                categorical_cols = X.columns[categorical_feature_mask].tolist()
-                le = LabelEncoder()
-                X[categorical_cols] = X[categorical_cols].apply(lambda col: le.fit_transform(col.astype(str)))
-                #scaler = preprocessing.StandardScaler()
-                #X = scaler.fit_transform(X)
-                #X.apply(LabelEncoder().fit_transform)
-                #X= pd.get_dummies(X,dummy_na=True, drop_first=True)
-                st.subheader("Training Data - Input Features")
-                st.dataframe(X)
-                Y = new_df[selected_Target_columns]
-                st.subheader("Training Data - Target Feature")
-                if Y.dtypes.any()==object or Y.iloc[:,0].nunique()<5:
-                    st.dataframe(Y)
-                #elif Y.iloc[:,0].nunique()<5:
-                                    
-                    #st.dataframe(Y)
-                    st.subheader("Automated Traditional Model Building")
+            st.subheader("Select Target columns")## Change - Left Indent V 1.0 - for whole chuck till else
+            all_columns = new_df.columns
+            global selected_Target_columns
+            selected_Target_columns = st.multiselect(" ",all_columns)
+            X = new_df.drop(columns=selected_Target_columns)
+            X.replace(np.nan,0)
+            
+            #X.drop(lambda x: x if (x.nunique()>10))
+            
+            categorical_feature_mask = X.dtypes==object
+            categorical_cols = X.columns[categorical_feature_mask].tolist()
+            le = LabelEncoder()
+            X[categorical_cols] = X[categorical_cols].apply(lambda col: le.fit_transform(col.astype(str)))
+            #scaler = preprocessing.StandardScaler()
+            #X = scaler.fit_transform(X)
+            #X.apply(LabelEncoder().fit_transform)
+            #X= pd.get_dummies(X,dummy_na=True, drop_first=True)
+            st.subheader("Training Data - Input Features")
+            st.dataframe(X)
+            Y = new_df[selected_Target_columns]
+            st.subheader("Training Data - Target Feature")
+            
+            if Y.dtypes.any()==object or Y.iloc[:,0].nunique()<5:
+                st.dataframe(Y)
+            #elif Y.iloc[:,0].nunique()<5:
+                                
+                #st.dataframe(Y)
+                st.subheader("Automated Traditional Model Building")
+                seed =123
+                models =[]
+                models.append(("Logistic Regression",LogisticRegression()))
+                models.append(("Decision Tree",DecisionTreeClassifier()))
+                models.append(("Ensemble",RandomForestClassifier()))
+                #models.append(("Support Vector Machine",SVC()))
+                fit =[]
+        
+                model_names_log = []
+                model_accuracy_log =[]
+                model_f1_log = []
+                all_models = []
+                scoring = 'balanced_accuracy'
+
+                for name,model in models:
+                    #kfold =model_selection.KFold(n_splits = 10, random_state = seed)
+                    #cv_results = model_selection.cross_val_score(model,X,Y,cv=kfold,scoring = scoring)
+                    X_train,X_test,y_train,y_test = train_test_split(X,Y,test_size = 0.20,random_state =123)
+                    model_fit = model.fit(X,Y)
+                    y_pred = model.predict(X_test)
+                    model_accuracy_l = accuracy_score(y_test,y_pred)
+                    model_f1_l = f1_score(y_test,y_pred,average ='weighted')
+                    model_names_log.append(name)
+                    model_accuracy_log.append(model_accuracy_l)
+                    model_f1_log.append(model_f1_l)
+                    #model_names.append(name)
+                    #model_mean.append(cv_results.mean())
+                    #model_std.append(cv_results.std())
+
+                    accuracy_results = {"model_name":name,"model_accuracy":model_accuracy_l,"Standard Deviation":model_f1_l}
+                    all_models.append(accuracy_results)
+                    fit.append(model_fit)
+                    
+                    model_dict = dict(zip(model_names_log,fit))
+                    
+                Model_data =pd.DataFrame(zip(model_names_log,model_accuracy_log,model_f1_log),columns =['Model Name','Accuracy','F1 Score'])
+                st.subheader("Accuracy Metrics")# Change Version 1.0
+                #st.dataframe(pd.DataFrame(zip(model_names_log,model_accuracy_log,model_f1_log),columns =['Model Name','Accuracy','F1 Score']).sort_values('Accuracy',ascending=False))
+                st.dataframe(Model_data)
+                    #st.write(model_dict)
+                st.subheader("Advanced Prediction Model Building")
+                if st.checkbox("Select to start generating multiple models "):
+                    all_x = brute_force_combinations(list(X.columns))
+                    
                     seed =123
                     models =[]
                     models.append(("Logistic Regression",LogisticRegression()))
                     models.append(("Decision Tree",DecisionTreeClassifier()))
                     models.append(("Ensemble",RandomForestClassifier()))
+                    st.write("Models Estimated",len(all_x)*len(models))
+                    #st.text("Model upload Done")
                     #models.append(("Support Vector Machine",SVC()))
-                    fit =[]
-            
-                    model_names_log = []
-                    model_accuracy_log =[]
-                    model_f1_log = []
-                    all_models = []
-                    scoring = 'balanced_accuracy'
-
+                    ind=[]
+                    all_models_adv_l =[]
+                    model_names_adv_l = []
+                    final_features = []
+                    accu =[]
+                    f1= []
+                    feat = []
+                    sensitivity  = []
+                    result=[]
+                    #st.line_chart(accu)
                     for name,model in models:
-                        #kfold =model_selection.KFold(n_splits = 10, random_state = seed)
-                        #cv_results = model_selection.cross_val_score(model,X,Y,cv=kfold,scoring = scoring)
-                        X_train,X_test,y_train,y_test = train_test_split(X,Y,test_size = 0.20,random_state =123)
-                        model_fit = model.fit(X,Y)
-                        y_pred = model.predict(X_test)
-                        model_accuracy_l = accuracy_score(y_test,y_pred)
-                        model_f1_l = f1_score(y_test,y_pred,average ='weighted')
-                        model_names_log.append(name)
-                        model_accuracy_log.append(model_accuracy_l)
-                        model_f1_log.append(model_f1_l)
-                        #model_names.append(name)
-                        #model_mean.append(cv_results.mean())
-                        #model_std.append(cv_results.std())
-
-                        accuracy_results = {"model_name":name,"model_accuracy":model_accuracy_l,"Standard Deviation":model_f1_l}
-                        all_models.append(accuracy_results)
-                        fit.append(model_fit)
-                        
-                        model_dict = dict(zip(model_names_log,fit))
-                    
-                    if st.checkbox("Accuracy Metrics"):
-                        st.dataframe(pd.DataFrame(zip(model_names_log,model_accuracy_log,model_f1_log),columns =['Model Name','Model Accuracy','F1 Score']).sort_values('Model Accuracy',ascending=False))
-                        #st.write(model_dict)
-                    st.subheader("Advanced Prediction Model Building")
-                    if st.checkbox("Advanced Prediction Model"):
-                        all_x = brute_force_combinations(list(X.columns))
-                        #st.dataframe(all_x)
-                        seed =123
-                        models =[]
-                        models.append(("Logistic Regression",LogisticRegression()))
-                        models.append(("Decision Tree",DecisionTreeClassifier()))
-                        models.append(("Ensemble",RandomForestClassifier()))
-                        #models.append(("Support Vector Machine",SVC()))      
-                        all_models_adv_l =[]
-                        model_names_adv_l = []
-                        final_features = []
-                        accu =[]
-                        f1= []
-                        feat = []
-                        sensitivity  = []
-                        result=[]
                         for i in range(len(all_x)):
-                            for name,model in models:
-                                final_features = all_x[i]
-                                X1 = X[final_features]
-                                #X= pd.get_dummies(X,dummy_na=True, drop_first=True)
-                                X_train,X_test,y_train,y_test = train_test_split(X1,Y,test_size = 0.20,random_state =123)
-                                #row = ""
-                                model.fit(X_train,y_train)
-                                y_pred = model.predict(X_test)
-                                #y_pred_proba = model.predict_proba(X_test)[::,1]
-                                accur = accuracy_score(y_test,y_pred)
-                                f1r = f1_score(y_test,y_pred,average ='weighted')
-                                model_names_adv_l.append(name)
-                                #result = result_summary(y_test,y_pred)
-                                #result['model'] = [str(model).split("(")[0]]
-                                #result['feature_set'] = [str(final_features).replace(",",";")]
-                                #result_frame = pd.DataFrame(result)
-                                #final_frame = final_frame.append(result_frame)
-                                #row += str(model).split("(")[0]
-                                #row += "," +str(final_features).replace(",",";")
-                                #row += "," + str(model.intercept_)
-                                #accuracy  = accuracy()
-                                #row += "," + str(r2score)
-                                #specificity = specificity(y_test,y_pred)
-                                #row += "," +str(mse)
-                                #sensitivity = sensitivity(y_test,y_pred)
-                                #row += "," + str(rmse)
-                                #accuracy_results_adv_1 = {"model_name":name,"model_accuracy":r2score.mean(),"MSE":mse.mean(),"RMSE":rmse.mean()}
-                                #all_models_adv_1.append(accuracy_results_adv)
-                                #model_names_adv.append(name)
-                                #accuracy.append(accuracy)
-                                #specificity.append(specificity)
-                                #sensitivity.append(sensitivity)
-                                accu.append(accur)
-                                f1.append(f1r)
-                                feat.append(final_features)
-                                
-                        st.dataframe(pd.DataFrame(zip(model_names_adv_l,feat,accu,f1),columns =['Model Name','Features','Accuracy','F1-Score']).sort_values('Accuracy',ascending=False))
-                        #st.dataframe(result_frame)
-                        st.text(len(model_names_adv))
-                else:
-                    st.dataframe(Y)
-                    st.subheader("Automated Traditional Model Building")
+                            final_features = all_x[i]
+                            X1 = X[final_features]
+                            #X= pd.get_dummies(X,dummy_na=True, drop_first=True)
+                            X_train,X_test,y_train,y_test = train_test_split(X1,Y,test_size = 0.20,random_state =123)
+                            #row = ""
+                            model.fit(X_train,y_train)
+                            y_pred = model.predict(X_test)
+                            #y_pred_proba = model.predict_proba(X_test)[::,1]
+                            accur = accuracy_score(y_test,y_pred)
+                            ind.append(i)
+                            f1r = f1_score(y_test,y_pred,average ='weighted')
+                            model_names_adv_l.append(name)
+                            #result = result_summary(y_test,y_pred)
+                            #result['model'] = [str(model).split("(")[0]]
+                            #result['feature_set'] = [str(final_features).replace(",",";")]
+                            #result_frame = pd.DataFrame(result)
+                            #final_frame = final_frame.append(result_frame)
+                            #row += str(model).split("(")[0]
+                            #row += "," +str(final_features).replace(",",";")
+                            #row += "," + str(model.intercept_)
+                            #accuracy  = accuracy()
+                            #row += "," + str(r2score)
+                            #specificity = specificity(y_test,y_pred)
+                            #row += "," +str(mse)
+                            #sensitivity = sensitivity(y_test,y_pred)
+                            #row += "," + str(rmse)
+                            #accuracy_results_adv_1 = {"model_name":name,"model_accuracy":r2score.mean(),"MSE":mse.mean(),"RMSE":rmse.mean()}
+                            #all_models_adv_1.append(accuracy_results_adv)
+                            #model_names_adv.append(name)
+                            #accuracy.append(accuracy)
+                            #specificity.append(specificity)
+                            #sensitivity.append(sensitivity)
+                            accu.append(accur)
+                            f1.append(f1r)
+                            feat.append(final_features)
+                            st.write(name,"|","Iteration",i,"Accuracy",accur,"F1 Score",f1r,"|","Model Done")
+                            
+                    st.dataframe(pd.DataFrame(zip(model_names_adv_l,feat,accu,f1),columns =['Model Name','Features','Accuracy','F1-Score']).sort_values('Accuracy',ascending=False))
+                    #st.dataframe(result_frame)
+                    st.text(len(model_names_adv_l))
+            else:         
+                st.dataframe(Y)
+                st.subheader("Automated Traditional Model Building")
+                seed =123
+                models =[]
+                models.append(("Linear Regression",LinearRegression()))
+                models.append(("Decision Tree",DecisionTreeRegressor()))
+                models.append(("Ensemble",RandomForestRegressor()))
+                #models.append(("Support Vector Machine",SVR()))
+                #https://scikit-learn.org/stable/modules/model_evaluation.html
+                fit =[]
+        
+                model_names = []
+                model_mean =[]
+                model_rmse = []
+                model_rmse_c1 = []
+                all_models = []
+                model_mape_line =[]
+                scoring = 'r2'
+
+                for name,model in models:
+                    #kfold =model_selection.KFold(n_splits = 10, random_state = seed)
+                    #cv_results = model_selection.cross_val_score(model,X,Y,cv=kfold,scoring = scoring)
+                    X_train,X_test,y_train,y_test = train_test_split(X,Y,test_size = 0.20,random_state =123)
+                    #cv_results = cv_results
+                    model.fit = model.fit(X,Y)
+                    y_pred = model.predict(X_test)
+                    model_names.append(name)
+                   #model_mean.append(cv_results.mean())
+                    #model_std.append(cv_results.std())
+                    model_mape_lin = mean_absolute_percentage_error(y_pred,y_test)
+                    model_rms = np.sqrt(mean_squared_error(y_test,y_pred))
+                    model_rmse_c = r2_score(y_test,y_pred)
+                    #accuracy_results = {"model_name":name,"model_accuracy":cv_results.mean(),"Standard Deviation":cv_results.std()}
+                    #all_models.append(accuracy_results)
+                    model_mape_line.append(model_mape_lin)
+                    model_rmse.append(model_rms)
+                    model_rmse_c1.append(model_rmse_c)
+                    fit.append(model.fit)
+                    model_dict = dict(zip(model_names,fit))
+            
+                #if st.checkbox("Accuracy Metrics"):
+                st.dataframe(pd.DataFrame(zip(model_names,model_rmse_c1,model_rmse,model_mape_line),columns =['Model Name','R Square','RMSE ',' MAPE']))
+
+                st.subheader("Advanced Prediction Model Building")
+                if st.checkbox("Advanced Prediction Model"):
+                    all_x = brute_force_combinations(list(X.columns))
+                    #all_x = list(all_x)
+                    #st.dataframe(all_x[0])
                     seed =123
                     models =[]
                     models.append(("Linear Regression",LinearRegression()))
                     models.append(("Decision Tree",DecisionTreeRegressor()))
                     models.append(("Ensemble",RandomForestRegressor()))
-                    #models.append(("Support Vector Machine",SVR()))
-                    #https://scikit-learn.org/stable/modules/model_evaluation.html
-                    fit =[]
-            
-                    model_names = []
-                    model_mean =[]
+                    #models.append(("Support Vector Machine",SVR()))             
+                    all_models_adv =[]
+                    model_names_adv = []
+                    model_r2 =[]
+                    model_mse = []
                     model_rmse = []
-                    model_rmse_c1 = []
-                    all_models = []
-                    model_mape_line =[]
-                    scoring = 'r2'
-
-                    for name,model in models:
-                        #kfold =model_selection.KFold(n_splits = 10, random_state = seed)
-                        #cv_results = model_selection.cross_val_score(model,X,Y,cv=kfold,scoring = scoring)
-                        X_train,X_test,y_train,y_test = train_test_split(X,Y,test_size = 0.20,random_state =123)
-                        #cv_results = cv_results
-                        model.fit = model.fit(X,Y)
-                        y_pred = model.predict(X_test)
-                        model_names.append(name)
-                       #model_mean.append(cv_results.mean())
-                        #model_std.append(cv_results.std())
-                        model_mape_lin = mean_absolute_percentage_error(y_pred,y_test)
-                        model_rms = np.sqrt(mean_squared_error(y_test,y_pred))
-                        model_rmse_c = r2_score(y_test,y_pred)
-                        #accuracy_results = {"model_name":name,"model_accuracy":cv_results.mean(),"Standard Deviation":cv_results.std()}
-                        #all_models.append(accuracy_results)
-                        model_mape_line.append(model_mape_lin)
-                        model_rmse.append(model_rms)
-                        model_rmse_c1.append(model_rmse_c)
-                        fit.append(model.fit)
-                        model_dict = dict(zip(model_names,fit))
-                
-                    #if st.checkbox("Accuracy Metrics"):
-                    st.dataframe(pd.DataFrame(zip(model_names,model_rmse_c1,model_rmse,model_mape_line),columns =['Model Name','R Square','RMSE ',' MAPE']))
-
-                    st.subheader("Advanced Prediction Model Building")
-                    if st.checkbox("Advanced Prediction Model"):
-                        all_x = brute_force_combinations(list(X.columns))
-                        #all_x = list(all_x)
-                        #st.dataframe(all_x[0])
-                        seed =123
-                        models =[]
-                        models.append(("Linear Regression",LinearRegression()))
-                        models.append(("Decision Tree",DecisionTreeRegressor()))
-                        models.append(("Ensemble",RandomForestRegressor()))
-                        #models.append(("Support Vector Machine",SVR()))             
-                        all_models_adv =[]
-                        model_names_adv = []
-                        model_r2 =[]
-                        model_mse = []
-                        model_rmse = []
-                        feat = []
-                        for i in range(len(all_x)):
-                            for name,model in models:
-                                final_features = all_x[i]
-                                X2 = X[final_features]
-                                #X= pd.get_dummies(X, prefix=None, prefix_sep='_', dummy_na=True, drop_first=True, dtype=None)
-                                X_train,X_test,y_train,y_test = train_test_split(X2,Y,test_size = 0.20,random_state =123)
-                                #row = ""
-                                model.fit(X_train,y_train)
-                                y_pred = model.predict(X_test)
-                                #row += str(model).split("(")[0]
-                                #row += "," +str(final_features).replace(",",";")
-                                #row += "," + str(model.intercept_)
-                                r2score = r2_score(y_test,y_pred)
-                                #row += "," + str(r2score)
-                                mse = mean_absolute_percentage_error(y_test,y_pred)
-                                #row += "," +str(mse)
-                                rmse = np.sqrt(mean_squared_error(y_test,y_pred))
-                                #row += "," + str(rmse)
-                                accuracy_results_adv = {"model_name":name,"model_accuracy":r2score.mean(),"MSE":mse.mean(),"RMSE":rmse.mean()}
-                                all_models_adv.append(accuracy_results_adv)
-                                model_names_adv.append(name)
-                                model_r2.append(r2score)
-                                model_mse.append(mse)
-                                model_rmse.append(rmse)
-                                feat.append(final_features)
-                                
-                        st.dataframe(pd.DataFrame(zip(model_names_adv,feat,model_r2,model_mse,model_rmse),columns =['Model Name','Features','R-Square','MAPE','RMSE']).sort_values('R-Square',ascending=False))
-                        st.text(len(model_names_adv))       
-                        #result_df = pd.DataFrame(zip(data,names=["Model","Model_intercept", "Features", "r2_score", "MSE","RMSE"]))
-                        #st.dataframe(all_combinations.head())
+                    feat = []
+                    for i in range(len(all_x)):
+                        for name,model in models:
+                            final_features = all_x[i]
+                            X2 = X[final_features]
+                            #X= pd.get_dummies(X, prefix=None, prefix_sep='_', dummy_na=True, drop_first=True, dtype=None)
+                            X_train,X_test,y_train,y_test = train_test_split(X2,Y,test_size = 0.20,random_state =123)
+                            #row = ""
+                            model.fit(X_train,y_train)
+                            y_pred = model.predict(X_test)
+                            #row += str(model).split("(")[0]
+                            #row += "," +str(final_features).replace(",",";")
+                            #row += "," + str(model.intercept_)
+                            r2score = r2_score(y_test,y_pred)
+                            #row += "," + str(r2score)
+                            mse = mean_absolute_percentage_error(y_test,y_pred)
+                            #row += "," +str(mse)
+                            rmse = np.sqrt(mean_squared_error(y_test,y_pred))
+                            #row += "," + str(rmse)
+                            accuracy_results_adv = {"model_name":name,"model_accuracy":r2score.mean(),"MSE":mse.mean(),"RMSE":rmse.mean()}
+                            all_models_adv.append(accuracy_results_adv)
+                            model_names_adv.append(name)
+                            model_r2.append(r2score)
+                            model_mse.append(mse)
+                            model_rmse.append(rmse)
+                            feat.append(final_features)
+                            
+                    st.dataframe(pd.DataFrame(zip(model_names_adv,feat,model_r2,model_mse,model_rmse),columns =['Model Name','Features','R-Square','MAPE','RMSE']).sort_values('Model R-Square',ascending=False))
+                    st.text(len(model_names_adv))       
+                    #result_df = pd.DataFrame(zip(data,names=["Model","Model_intercept", "Features", "r2_score", "MSE","RMSE"]))
+                    #st.dataframe(all_combinations.head())
 
         st.subheader("Prediction on your data")    
         if st.checkbox("Predictions on your data"):
