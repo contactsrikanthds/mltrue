@@ -238,8 +238,8 @@ def main():
                 model_rmse = []
                 model_mape = []
                 feat = []
-                for i in range(len(all_x)):
-                    for name,model in models:
+                for name,model in models:
+                    for i in range(len(all_x)):
                         final_features = all_x[i]
                         X2 = X[final_features]
                         categorical_feature_mask = X2.dtypes==object
@@ -281,7 +281,7 @@ def main():
                 #result_df = pd.DataFrame(zip(data,names=["Model","Model_intercept", "Features", "r2_score", "MSE","RMSE"]))
                 #st.dataframe(all_combinations.head())
 
-        elif st.subheader("Select ID columns to remove"):
+        elif st.subheader("Select columns to remove"):
             ###Change Performed V 1.0
             all_columns = df.columns
             global selected_columns
@@ -311,12 +311,12 @@ def main():
             Y = new_df[selected_Target_columns]
             st.subheader("Training Data - Target Feature")
             
-            if Y.dtypes.any()==object or Y.iloc[:,0].nunique()<5:
+            if Y.dtypes.any()==object or Y.iloc[:,0].nunique()<10:
                 st.dataframe(Y)
             #elif Y.iloc[:,0].nunique()<5:
                                 
                 #st.dataframe(Y)
-                st.subheader("Automated Traditional Model Building")
+                #st.subheader("Automated Traditional Model Building")
                 seed =123
                 models =[]
                 models.append(("Logistic Regression",LogisticRegression()))
@@ -353,9 +353,9 @@ def main():
                     model_dict = dict(zip(model_names_log,fit))
                     
                 Model_data =pd.DataFrame(zip(model_names_log,model_accuracy_log,model_f1_log),columns =['Model Name','Accuracy','F1 Score'])
-                st.subheader("Accuracy Metrics")# Change Version 1.0
+                #st.subheader("Accuracy Metrics")# Change Version 1.0
                 #st.dataframe(pd.DataFrame(zip(model_names_log,model_accuracy_log,model_f1_log),columns =['Model Name','Accuracy','F1 Score']).sort_values('Accuracy',ascending=False))
-                st.dataframe(Model_data)
+                #st.dataframe(Model_data)
                     #st.write(model_dict)
                 st.subheader("Advanced Prediction Model Building")
                 if st.checkbox("Select to start generating multiple models "):
@@ -423,7 +423,7 @@ def main():
                     st.text(len(model_names_adv_l))
             else:         
                 st.dataframe(Y)
-                st.subheader("Automated Traditional Model Building")
+                #st.subheader("Automated Traditional Model Building")
                 seed =123
                 models =[]
                 models.append(("Linear Regression",LinearRegression()))
@@ -463,7 +463,7 @@ def main():
                     model_dict = dict(zip(model_names,fit))
             
                 #if st.checkbox("Accuracy Metrics"):
-                st.dataframe(pd.DataFrame(zip(model_names,model_rmse_c1,model_rmse,model_mape_line),columns =['Model Name','R Square','RMSE ',' MAPE']))
+                #st.dataframe(pd.DataFrame(zip(model_names,model_rmse_c1,model_rmse,model_mape_line),columns =['Model Name','R Square','RMSE ',' MAPE']))
 
                 st.subheader("Advanced Prediction Model Building")
                 if st.checkbox("Advanced Prediction Model"):
@@ -482,8 +482,8 @@ def main():
                     model_mse = []
                     model_rmse = []
                     feat = []
-                    for i in range(len(all_x)):
-                        for name,model in models:
+                    for name,model in models:
+                        for i in range(len(all_x)):
                             final_features = all_x[i]
                             X2 = X[final_features]
                             #X= pd.get_dummies(X, prefix=None, prefix_sep='_', dummy_na=True, drop_first=True, dtype=None)
@@ -508,7 +508,7 @@ def main():
                             model_rmse.append(rmse)
                             feat.append(final_features)
                             
-                    st.dataframe(pd.DataFrame(zip(model_names_adv,feat,model_r2,model_mse,model_rmse),columns =['Model Name','Features','R-Square','MAPE','RMSE']).sort_values('Model R-Square',ascending=False))
+                    st.dataframe(pd.DataFrame(zip(model_names_adv,feat,model_r2,model_mse,model_rmse),columns =['Model Name','Features','R-Square','MAPE','RMSE']).sort_values('R-Square',ascending=False))
                     st.text(len(model_names_adv))       
                     #result_df = pd.DataFrame(zip(data,names=["Model","Model_intercept", "Features", "r2_score", "MSE","RMSE"]))
                     #st.dataframe(all_combinations.head())
