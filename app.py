@@ -37,6 +37,11 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from itertools import combinations
+from xgboost import XGBClassifier
+from xgboost import XGBRegressor
+from sklearn.metrics import roc_auc_score
+
+
 import time
 #import datefinder
 #import dateparser
@@ -115,6 +120,30 @@ def main():
                 all_combinations.append(list(c))
             
         return(all_combinations)
+
+    
+    def treatoutliers(df, columns=None, factor=1.5, method='IQR', treament='cap'):
+    
+        if not columns:
+            columns = df.columns
+        
+        for column in columns:
+            if method == 'STD':
+                permissable_std = factor * df[column].std()
+                col_mean = df[column].mean()
+                floor, ceil = col_mean - permissable_std, col_mean + permissable_std
+            elif method == 'IQR':
+                Q1 = df[column].quantile(0.25)
+                Q3 = df[column].quantile(0.75)
+                IQR = Q3 - Q1
+                floor, ceil = Q1 - factor * IQR, Q3 + factor * IQR
+            
+            if treament == 'remove':
+                df = df[(df[column] >= floor) & (df[column] <= ceil)]
+            elif treament == 'cap':
+                df[column] = df[column].clip(floor, ceil)
+                
+        return df
 
     def brute_force_model(data_downsampled_df,features_combination,target_variable,model):
         final_frame = pd.DataFrame()
@@ -229,7 +258,8 @@ def main():
                 models.append(("Linear Regression",LinearRegression()))
                 models.append(("Decision Tree",DecisionTreeRegressor()))
                 models.append(("Ensemble",RandomForestRegressor()))
-                #models.append(("Support Vector Machine",SVR()))             
+                models.append(("Support Vector Machine",SVR()))
+                models.append(("XGBoost",XGBRegressor(objective="reg:linear")))
                 all_models_adv =[]
                 model_names_adv = []
                 model_accuracy = []
@@ -255,28 +285,29 @@ def main():
                         #row = ""
                         model.fit(X_train,y_train)
                         y_pred = model.predict(X_test)
-                        Accuracy = model.score(X_test,y_test)
+                        #Accuracy = model.score(X_test,y_test)
                         #row += str(model).split("(")[0]
                         #row += "," +str(final_features).replace(",",";")
                         #row += "," + str(model.intercept_)
-                        r2score = r2_score(y_test,y_pred)
+                        #r2score = r2_score(y_test,y_pred)
                         #row += "," + str(r2score)
                         mse = mean_squared_error(y_test,y_pred)
                         #row += "," +str(mse)
                         rmse = np.sqrt(mean_squared_error(y_test,y_pred))
                         #row += "," + str(rmse)
                         MAPE = mean_absolute_percentage_error(y_test,y_pred)
-                        accuracy_results_adv = {"model_name":name,"model_accuracy":r2score.mean(),"MSE":mse.mean(),"RMSE":rmse.mean(),"MAPE":MAPE.mean()}
-                        all_models_adv.append(accuracy_results_adv)
+                        #accuracy_results_adv = {"model_name":name,"MSE":mse.mean(),"RMSE":rmse.mean(),"MAPE":MAPE.mean()}
+                        #all_models_adv.append(accuracy_results_adv)
                         model_names_adv.append(name)
-                        model_accuracy.append(Accuracy)
-                        model_r2.append(r2score)
+                        #model_accuracy.append(Accuracy)
+                        #model_r2.append(r2score)
                         model_mse.append(mse)
                         model_rmse.append(rmse)
                         model_mape.append(MAPE)
                         feat.append(final_features)
+                        st.write(name,"|","Iteration",i,"MAPE",MAPE,"RMSE",rmse,"MSE",mse,"|","Model Done")
                         
-                st.dataframe(pd.DataFrame(zip(model_names_adv,feat,model_accuracy,model_mse,model_rmse),columns =['Model Name','Features','Accuracy',' MSE','RMSE']).sort_values('Accuracy',ascending=False))
+                st.dataframe(pd.DataFrame(zip(model_names_adv,feat,model_mape,model_mse,model_rmse),columns =['Model Name','Features','MAPE',' MSE','RMSE']).sort_values('MAPE',ascending=True))
                 st.text(len(model_names_adv))       
                 #result_df = pd.DataFrame(zip(data,names=["Model","Model_intercept", "Features", "r2_score", "MSE","RMSE"]))
                 #st.dataframe(all_combinations.head())
@@ -288,27 +319,42 @@ def main():
             selected_columns = st.multiselect("Select Columns",all_columns)
             new_df = df.drop(columns=selected_columns)
             st.dataframe(new_df)
-
+            
             st.subheader("Select Target columns")## Change - Left Indent V 1.0 - for whole chuck till else
             all_columns = new_df.columns
             global selected_Target_columns
             selected_Target_columns = st.multiselect(" ",all_columns)
             X = new_df.drop(columns=selected_Target_columns)
-            X.replace(np.nan,0)
-            
-            #X.drop(lambda x: x if (x.nunique()>10))
-            
+            #X.replace(np.nan,0)
+            X.fillna(0)
+            org_col = X.columns
+            #X.drop(lambda x: x if (x.nunique()>15)
+            #X = X.drop(lambda x: x.nunique()>15, axis=1)
             categorical_feature_mask = X.dtypes==object
             categorical_cols = X.columns[categorical_feature_mask].tolist()
+            X.drop(X[list(X[categorical_cols].nunique().where(lambda x: x>15).dropna().index)].columns,axis=1,inplace =True)
+            categorical_feature_mask = X.dtypes==object
+            categorical_cols = X.columns[categorical_feature_mask].tolist()
+            #st.dataframe(X)
+            
             le = LabelEncoder()
             X[categorical_cols] = X[categorical_cols].apply(lambda col: le.fit_transform(col.astype(str)))
+            #st.dataframe(X[categorical_cols])
+            #X = X.drop(X[X[categorical_cols].nunique()>15].index,inplace = true)
+            treatoutliers(X[X.columns.difference(categorical_cols)])
             #scaler = preprocessing.StandardScaler()
             #X = scaler.fit_transform(X)
             #X.apply(LabelEncoder().fit_transform)
             #X= pd.get_dummies(X,dummy_na=True, drop_first=True)
+            
+            
             st.subheader("Training Data - Input Features")
             st.dataframe(X)
+            #scaler = preprocessing.StandardScaler()
+            #X = scaler.fit_transform(X)
+            #X = pd.DataFrame(X,columns = org_col)
             Y = new_df[selected_Target_columns]
+            
             st.subheader("Training Data - Target Feature")
             
             if Y.dtypes.any()==object or Y.iloc[:,0].nunique()<10:
@@ -320,9 +366,11 @@ def main():
                 seed =123
                 models =[]
                 models.append(("Logistic Regression",LogisticRegression()))
-                models.append(("Decision Tree",DecisionTreeClassifier()))
-                models.append(("Ensemble",RandomForestClassifier()))
+                #models.append(("Decision Tree",DecisionTreeClassifier()))
+                #models.append(("Ensemble",RandomForestClassifier()))
                 #models.append(("Support Vector Machine",SVC()))
+                #models.append(("XGBoost",XGBClassifier()))
+                
                 fit =[]
         
                 model_names_log = []
@@ -330,6 +378,7 @@ def main():
                 model_f1_log = []
                 all_models = []
                 scoring = 'balanced_accuracy'
+                #model_auc =[]
 
                 for name,model in models:
                     #kfold =model_selection.KFold(n_splits = 10, random_state = seed)
@@ -339,9 +388,12 @@ def main():
                     y_pred = model.predict(X_test)
                     model_accuracy_l = accuracy_score(y_test,y_pred)
                     model_f1_l = f1_score(y_test,y_pred,average ='weighted')
+                    auc =roc_auc_score(y_test, y_pred)
                     model_names_log.append(name)
                     model_accuracy_log.append(model_accuracy_l)
                     model_f1_log.append(model_f1_l)
+                    #model_auc.append(auc)
+
                     #model_names.append(name)
                     #model_mean.append(cv_results.mean())
                     #model_std.append(cv_results.std())
@@ -365,7 +417,9 @@ def main():
                     models =[]
                     models.append(("Logistic Regression",LogisticRegression()))
                     models.append(("Decision Tree",DecisionTreeClassifier()))
-                    models.append(("Ensemble",RandomForestClassifier()))
+                    models.append(("Ensemble",RandomForestClassifier(n_estimators=10)))
+                    models.append(("Support Vector Machine",SVC()))
+                    models.append(("XGBoost",XGBClassifier()))
                     st.write("Models Estimated",len(all_x)*len(models))
                     #st.text("Model upload Done")
                     #models.append(("Support Vector Machine",SVC()))
@@ -378,6 +432,7 @@ def main():
                     feat = []
                     sensitivity  = []
                     result=[]
+                    model_auc = []
                     #st.line_chart(accu)
                     for name,model in models:
                         for i in range(len(all_x)):
@@ -390,6 +445,7 @@ def main():
                             y_pred = model.predict(X_test)
                             #y_pred_proba = model.predict_proba(X_test)[::,1]
                             accur = accuracy_score(y_test,y_pred)
+                            auc =roc_auc_score(y_test,y_pred)
                             ind.append(i)
                             f1r = f1_score(y_test,y_pred,average ='weighted')
                             model_names_adv_l.append(name)
@@ -416,9 +472,10 @@ def main():
                             accu.append(accur)
                             f1.append(f1r)
                             feat.append(final_features)
-                            st.write(name,"|","Iteration",i,"Accuracy",accur,"F1 Score",f1r,"|","Model Done")
+                            model_auc.append(auc)
+                            st.write(name,"|","Iteration",i,"Accuracy",accur,"AUC",auc,"F1 Score",f1r,"|","Model Done")
                             
-                    st.dataframe(pd.DataFrame(zip(model_names_adv_l,feat,accu,f1),columns =['Model Name','Features','Accuracy','F1-Score']).sort_values('Accuracy',ascending=False))
+                    st.dataframe(pd.DataFrame(zip(model_names_adv_l,feat,model_auc,accu,f1),columns =['Model Name','Features','AUC','Accuracy','F1-Score']).sort_values('AUC',ascending=False))
                     #st.dataframe(result_frame)
                     st.text(len(model_names_adv_l))
             else:         
@@ -427,9 +484,9 @@ def main():
                 seed =123
                 models =[]
                 models.append(("Linear Regression",LinearRegression()))
-                models.append(("Decision Tree",DecisionTreeRegressor()))
-                models.append(("Ensemble",RandomForestRegressor()))
-                #models.append(("Support Vector Machine",SVR()))
+                #models.append(("Decision Tree",DecisionTreeRegressor()))
+                #models.append(("Ensemble",RandomForestRegressor()))
+                #models.append(("Support Vector Machine",SVR(objective="reg:linear",random_state=123)))
                 #https://scikit-learn.org/stable/modules/model_evaluation.html
                 fit =[]
         
@@ -475,12 +532,14 @@ def main():
                     models.append(("Linear Regression",LinearRegression()))
                     models.append(("Decision Tree",DecisionTreeRegressor()))
                     models.append(("Ensemble",RandomForestRegressor()))
-                    #models.append(("Support Vector Machine",SVR()))             
+                    models.append(("Support Vector Machine",SVR()))
+                    models.append(("XGBoost",XGBRegressor(objective="reg:linear",random_state=123)))
                     all_models_adv =[]
                     model_names_adv = []
                     model_r2 =[]
-                    model_mse = []
+                    model_mape = []
                     model_rmse = []
+                    #madel_mape = []
                     feat = []
                     for name,model in models:
                         for i in range(len(all_x)):
@@ -496,19 +555,21 @@ def main():
                             #row += "," + str(model.intercept_)
                             r2score = r2_score(y_test,y_pred)
                             #row += "," + str(r2score)
-                            mse = mean_absolute_percentage_error(y_test,y_pred)
+                            mape = mean_absolute_percentage_error(y_test,y_pred)
                             #row += "," +str(mse)
                             rmse = np.sqrt(mean_squared_error(y_test,y_pred))
                             #row += "," + str(rmse)
-                            accuracy_results_adv = {"model_name":name,"model_accuracy":r2score.mean(),"MSE":mse.mean(),"RMSE":rmse.mean()}
-                            all_models_adv.append(accuracy_results_adv)
+                            #accuracy_results_adv = {"model_name":name,"model_accuracy":r2score.mean(),"MSE":mse.mean(),"RMSE":rmse.mean()}
+                            #all_models_adv.append(accuracy_results_adv)
                             model_names_adv.append(name)
                             model_r2.append(r2score)
-                            model_mse.append(mse)
+                            model_mape.append(mape)
                             model_rmse.append(rmse)
                             feat.append(final_features)
+                            #st.write(name,"|","Iteration",i,"MAPE",mape,"RMSE",rmse,"|","Model Done")
+                            st.write(len(model_names_adv))
                             
-                    st.dataframe(pd.DataFrame(zip(model_names_adv,feat,model_r2,model_mse,model_rmse),columns =['Model Name','Features','R-Square','MAPE','RMSE']).sort_values('R-Square',ascending=False))
+                    st.dataframe(pd.DataFrame(zip(model_names_adv,feat,model_mape,model_rmse),columns =['Model Name','Features','MAPE','RMSE']).sort_values('MAPE',ascending=True))
                     st.text(len(model_names_adv))       
                     #result_df = pd.DataFrame(zip(data,names=["Model","Model_intercept", "Features", "r2_score", "MSE","RMSE"]))
                     #st.dataframe(all_combinations.head())
