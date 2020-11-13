@@ -6,3 +6,4 @@ matplotlib
 datetime
 seaborn
 statsmodels
+xgboost
