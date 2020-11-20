@@ -231,6 +231,10 @@ def main():
                 new_df_new['Holiday'] = df['Holiday']
             except:
                 st.write("Holiday list not included")
+            #try:
+                #new_df_new['Date_'] = get_date(new_df_new['Date_'])
+            #except:
+                #st.write("Date format is not valid")
             new_df_new['Date_'] = new_df_new[selected_columns_time].apply(lambda x: pd.to_datetime(x,errors = 'coerce', format = '%m/%d/%Y'))
             new_df_new['Day_of_week'] = new_df_new['Date_'].dt.dayofweek
             new_df_new['Month'] = new_df_new['Date_'].dt.month
@@ -287,8 +291,8 @@ def main():
                         #X2 = scaler.fit_transform(X2)
                         #X= pd.get_dummies(X, prefix=None, prefix_sep='_', dummy_na=True, drop_first=True, dtype=None)
                         #X_train,X_test,y_train,y_test = train_test_split(X2,Y,test_size = 0.20,random_state =123)
-                        X_train, X_test= np.split(X2, [int(.60 *len(X))])
-                        y_train, y_test= np.split(Y, [int(.60 *len(Y))])
+                        X_train, X_test= np.split(X2, [int(.80 *len(X))])
+                        y_train, y_test= np.split(Y, [int(.80 *len(Y))])
                         #row = ""
                         model.fit(X_train,y_train)
                         y_pred = model.predict(X_test)
@@ -325,8 +329,10 @@ def main():
             global selected_columns
             selected_columns = st.multiselect("Select Columns",all_columns)
             new_df = df.drop(columns=selected_columns)
-            st.dataframe(new_df)
             
+            limitPer = len(new_df) * .80
+            new_df = new_df.dropna(thresh=limitPer,axis=1)
+            st.dataframe(new_df)
             st.subheader("Select Target columns")## Change - Left Indent V 1.0 - for whole chuck till else
             all_columns = new_df.columns
             global selected_Target_columns
@@ -513,7 +519,7 @@ def main():
                 ABG['importance']=model_XG.feature_importances_
                 ABG['Variable']= X.columns
                 ABG_D = ABG.sort_values(by=['importance'],ascending = False)
-                X_imp = ABG_D.head(13)
+                X_imp = ABG_D.head(6)
                 X_imp_l = X_imp['Variable'].tolist()
                 #st.write(X_imp_l)
                 #for name,model in models:
