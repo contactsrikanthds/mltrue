@@ -4,7 +4,8 @@
 # In[9]:
 
 
-import streamlit as st 
+import streamlit as st
+
 import pandas as pd 
 import numpy as np
 from sklearn import model_selection
@@ -25,7 +26,7 @@ import matplotlib
 import datetime
 from dateutil.parser import parse
 import seaborn as sns
-import statsmodels.api as sm
+#import statsmodels.api as sm
 from sklearn.utils import resample
 from sklearn.metrics import mean_squared_error
 #from sklearn.metrics import mean_absolute_percentage_error
@@ -60,10 +61,26 @@ def main():
     """True ML - A Truely Automated Machine Learning """
     
     st.title("True-ML")
-    st.subheader(" No Code Machine Learning Model Building")
-    st.write('<style>h1{color: white; background: DarkBlue; text-align: center;}</style>', unsafe_allow_html=True)
-    st.write('<style>h3{color: white;text-align: center;background: CornflowerBlue;}</style>', unsafe_allow_html=True)
-    st.markdown('<style>body{color: Navy;}</style>', unsafe_allow_html=True)    
+    st.markdown(" No Code Superior Machine Learning Model Building")
+    st.write('<style>h1{color: white; text-align: left;font-family: sans-serif;font-size: 45px}</style>', unsafe_allow_html=True)
+    st.write('<style>h2{color: white; text-align: center;font-family: sans-serif;}</style>', unsafe_allow_html=True)
+
+    st.write('<style>h3{color: white;text-align: left;font-family: sans-serif;font-size: 11px}</style>', unsafe_allow_html=True)
+    st.write('<style>body{color: white;font-family: sans-serif;text-align: left;}</style>', unsafe_allow_html=True)
+    st.write('<style>table{color: white;font-family: sans-serif;text-align: center;background-color: #eee}</style>', unsafe_allow_html=True)
+    st.markdown( '<style>h2{ color: white; font-family: sans-serif;text-align: center; }</style>'
+, unsafe_allow_html=True)
+    #st.markdown( '<style>label{ color: white; font-family: sans-serif; }</style>',unsafe_allow_html=True) 
+    
+
+    #st.markdown('<style>markdown-text-container{font-family: cursive;}</style>', unsafe_allow_html=True)
+    #st.write('<style>table{background-color: white;text-align: center;font-family: sans-serif;}</style>', unsafe_allow_html=True)
+    
+
+    page_bg_img = '<style>body{background-image: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWu0afLYJ6arrMqAAcw9D7mvHuU3UPs7pbFQ&usqp=CAU");background-size: cover;}</style>'
+
+    st.markdown(page_bg_img, unsafe_allow_html=True)
+    
     #activities = ['Auto','Plots','Model Building','Prediction']
     #choice = st.sidebar.selectbox("Select Activity", activities)
 
@@ -86,6 +103,10 @@ def main():
     def mean_absolute_percentage_error(y_true, y_pred):
         y_true, y_pred = np.array(y_true), np.array(y_pred)
         return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+
+    
+
+
 
 
     def result_summary(y_test,y_pred):
@@ -200,11 +221,16 @@ def main():
         
     data = st.file_uploader("",type=["csv","txt"])
     
+    
     if data is not None:
         data.seek(0)# change version V1.0
         df=pd.read_csv(data)
         df.fillna(df.mean(), inplace=True)
-        st.dataframe(df.head(100))
+        st.table(df.head())
+        #for i in df.columns:
+            #st.line_chart(data=df[i])
+        
+        
         #start_row = st.slider('Start row', 0, n_rows - max_rows)
         #end_row = start_row + max_rows
         #df = df[start_row:end_row]
@@ -212,7 +238,19 @@ def main():
         for percent_complete in range(100):
             time.sleep(0.01)
             my_bar.progress(percent_complete + 1)
-        if st.checkbox("Time Series"):
+        #st.subheader("Data Exploration")
+        #df.hist()
+        #plt.show()
+        #st.pyplot()
+
+        
+        #st.line_chart(df)
+
+        #fig = plt.figure(1)
+        #sns.pairplot(df) 
+        #st.pyplot(fig)
+        if st.button("Time Series"):
+            
             st.subheader("Select Date Column")
             all_columns = df.columns
             selected_columns_time = st.multiselect("Select Columns",all_columns)
@@ -221,7 +259,7 @@ def main():
             #df[selected_columns_time] = df[selected_columns_time].apply(lambda x: datetime.datetime.strptime(x,"%m/%d/%Y"))
             #for i in range(len(df)):
                 #df[selected_columns_time][i]=dateparser.parse(df[selected_columns_time][i],date_formats=["%m/%d/%Y"])
-            st.dataframe(df[selected_columns_time])
+            st.table(df[selected_columns_time])
             st.subheader("Select Data to forecast")
             selected_columns_1 = st.multiselect("Select Columns purpose",all_columns)
             
@@ -259,8 +297,8 @@ def main():
             st.dataframe(new_df_new)
             X=new_df_new
             Y = df[selected_columns_1]
-            st.subheader("Advanced Prediction Model Building")
-            if st.checkbox("Advanced Prediction Model"):
+            #st.subheader("Advanced Prediction Model Building")
+            if st.button("Advanced Prediction Model"):
                 all_x = brute_force_combinations(list(X.columns))
                 #all_x = list(all_x)
                 #st.dataframe(all_x[0])
@@ -268,7 +306,7 @@ def main():
                 models =[]
                 models.append(("Linear Regression",LinearRegression()))
                 models.append(("Decision Tree",DecisionTreeRegressor()))
-                #models.append(("Ensemble",RandomForestRegressor()))
+                models.append(("Ensemble",RandomForestRegressor()))
                 models.append(("Support Vector Machine",SVR()))
                 models.append(("XGBoost",XGBRegressor(objective="reg:linear")))
                 all_models_adv =[]
@@ -316,9 +354,9 @@ def main():
                         model_rmse.append(rmse)
                         model_mape.append(MAPE)
                         feat.append(final_features)
-                        st.write(name,"|","Iteration",i,"MAPE",MAPE,"RMSE",rmse,"MSE",mse,"|","Model Done")
+                        #st.write(name,"|","Iteration",i,"MAPE",MAPE,"RMSE",rmse,"MSE",mse,"|","Model Done")
                         
-                st.dataframe(pd.DataFrame(zip(model_names_adv,feat,model_mape,model_mse,model_rmse),columns =['Model Name','Features','MAPE',' MSE','RMSE']).sort_values('MAPE',ascending=True))
+                st.table(pd.DataFrame(zip(model_names_adv,feat,model_mape,model_mse,model_rmse),columns =['Model Name','Features','MAPE',' MSE','RMSE']).sort_values('MAPE',ascending=True))
                 st.text(len(model_names_adv))       
                 #result_df = pd.DataFrame(zip(data,names=["Model","Model_intercept", "Features", "r2_score", "MSE","RMSE"]))
                 #st.dataframe(all_combinations.head())
@@ -329,10 +367,11 @@ def main():
             global selected_columns
             selected_columns = st.multiselect("Select Columns",all_columns)
             new_df = df.drop(columns=selected_columns)
-            
-            limitPer = len(new_df) * .80
-            new_df = new_df.dropna(thresh=limitPer,axis=1)
-            st.dataframe(new_df)
+            #st.table(new_df.columns.transpose())
+            st.table(new_df.dtypes)
+            #limitPer = len(new_df) * .80
+            #new_df = new_df.dropna(thresh=limitPer,axis=1)
+            st.table(new_df.head())
             st.subheader("Select Target columns")## Change - Left Indent V 1.0 - for whole chuck till else
             all_columns = new_df.columns
             global selected_Target_columns
@@ -349,9 +388,12 @@ def main():
             categorical_feature_mask = X.dtypes==object
             categorical_cols = X.columns[categorical_feature_mask].tolist()
             #st.dataframe(X)
-            
+            #st.text(categorical_cols)
             le = LabelEncoder()
-            X[categorical_cols] = X[categorical_cols].apply(lambda col: le.fit_transform(col.astype(str)))
+            try:
+                X[categorical_cols] = X[categorical_cols].apply(lambda col: le.fit_transform(col.astype(str)))
+            except:
+                st.write("No Categories")
             #st.dataframe(X[categorical_cols])
             #X = X.drop(X[X[categorical_cols].nunique()>15].index,inplace = true)
             treatoutliers(X[X.columns.difference(categorical_cols)])
@@ -362,17 +404,42 @@ def main():
             
             
             st.subheader("Training Data - Input Features")
-            st.dataframe(X)
+            st.table(X.head())
+            
+         
             
             #scaler = preprocessing.StandardScaler()
             #X = scaler.fit_transform(X)
             #X = pd.DataFrame(X,columns = org_col)
             Y = new_df[selected_Target_columns]
+         
             
             st.subheader("Training Data - Target Feature")
             
             if Y.dtypes.any()==object or Y.iloc[:,0].nunique()<10:
-                st.dataframe(Y)
+                st.table(Y.head())
+                XGmodel = XGBClassifier()
+                model_XG = XGmodel.fit(X,Y)
+                columns = X.columns
+                ABG = pd.DataFrame()
+                ABG['importance']=model_XG.feature_importances_
+                ABG['Variable']= X.columns
+                ABG_D = ABG.sort_values(by=['importance'],ascending = False)
+                X_imp = ABG_D.head(13)
+                X_imp_l = X_imp['Variable'].tolist()
+                #importances = model_XG.feature_importances_
+                #indices = np.argsort(importances)
+                X_imp.set_index("Variable")
+                st.table(X_imp)
+                sns.barplot(x="importance", y="Variable", data=X_imp)
+                #plt.figure(figsize=(10,10))
+                #plt.rcParams["figure.figsize"] = (20,10)
+                #fig = plt.figure(figsize=(18, 18))
+                plt.xticks(size = 15)
+                plt.yticks(size = 15)
+                st.pyplot()
+                #st.bar_chart(X_imp['Variable'])
+                #Y = Y.apply(lambda col: le.fit_transform(col.astype(str)))
             #elif Y.iloc[:,0].nunique()<5:
                                 
                 #st.dataframe(Y)
@@ -423,8 +490,8 @@ def main():
                 #st.dataframe(pd.DataFrame(zip(model_names_log,model_accuracy_log,model_f1_log),columns =['Model Name','Accuracy','F1 Score']).sort_values('Accuracy',ascending=False))
                 #st.dataframe(Model_data)
                     #st.write(model_dict)
-                st.subheader("Advanced Prediction Model Building")
-                if st.checkbox("Select to start generating multiple models "):
+                #st.subheader("Advanced Prediction Model Building")
+                if st.button("Advance Model Building"):
                     all_x = brute_force_combinations(list(X.columns))
                     
                     seed =123
@@ -450,6 +517,7 @@ def main():
                     #st.line_chart(accu)
                     for name,model in models:
                         for i in range(len(all_x)):
+                            if i%len(all_x)==0:                                st.write(name,len(all_x),"models completed..Processing")
                             final_features = all_x[i]
                             X1 = X[final_features]
                             #X= pd.get_dummies(X,dummy_na=True, drop_first=True)
@@ -459,6 +527,7 @@ def main():
                             y_pred = model.predict(X_test)
                             #y_pred_proba = model.predict_proba(X_test)[::,1]
                             accur = accuracy_score(y_test,y_pred)
+                            #st.dataframe(y_test)
                             auc =roc_auc_score(y_test,y_pred)
                             ind.append(i)
                             f1r = f1_score(y_test,y_pred,average ='weighted')
@@ -487,13 +556,78 @@ def main():
                             f1.append(f1r)
                             feat.append(final_features)
                             model_auc.append(auc)
-                            st.write(name,"|","Iteration",i,"Accuracy",accur,"AUC",auc,"F1 Score",f1r,"|","Model Done")
                             
-                    st.dataframe(pd.DataFrame(zip(model_names_adv_l,feat,model_auc,accu,f1),columns =['Model Name','Features','AUC','Accuracy','F1-Score']).sort_values('AUC',ascending=False))
+                            
+
+                    st.table(pd.DataFrame(zip(model_names_adv_l,feat,model_auc,accu,f1),columns =['Model Name','Features','AUC','Accuracy','F1-Score']).sort_values('AUC',ascending=False).head())
+                    Result_data = pd.DataFrame(zip(model_names_adv_l,feat,model_auc,accu,f1),columns =['Model Name','Features','AUC','Accuracy','F1-Score']).sort_values('AUC',ascending=False)
                     #st.dataframe(result_frame)
-                    st.text(len(model_names_adv_l))
+                    #st.text(len(model_names_adv_l))
+                    #st.text(Result_data[0,:])
+                    #st.text(len(model_names_adv))
+                    global result_df
+                    result_df = pd.DataFrame(zip(model_names_adv_l,feat,model_auc,accu,f1),columns =['Model Name','Features','AUC','Accuracy','F1-Score']).sort_values('AUC',ascending=False)
+                    collist = result_df.iloc[0][[1]]
+                
+                    #ft = result_df.head(1)['Features']
+                    #em =[]
+                    #for row in ft:
+                        #for elem in row:
+                           #em.append(elem)
+                    #Xf = X[em]
+                    #md = result_df.head(1)['Model Name'].tolist()
+                    #ms = md[0]
+                    
+                    #for name,model in models:
+                        #if name in ms:
+                            #X_train_f,X_test_f,y_train_f,y_test_f = train_test_split(Xf,Y,test_size = 0.20,random_state =123)
+                            #model.fit(X_train_f,y_train_f)
+
+                            #st.subheader("Prediction on your data")    
+                    if st.button("Predictions on your data"):
+                        New_data = st.file_uploader("Upload New Dataset",type=["csv","txt"])
+                        if New_data is not None:
+                            New_df=pd.read_csv(New_data)
+                            st.dataframe(New_df.head())
+                            
+                            test_Xy = New_df.drop(columns=selected_columns)
+                            test_X = test_Xy[em]
+                            test_X.replace(np.nan,0,inplace=True)
+                            test_X.fillna(0)
+                            org_col = test_X.columns
+                            #X.drop(lambda x: x if (x.nunique()>15)
+                            #X = X.drop(lambda x: x.nunique()>15, axis=1)
+                            categorical_feature_mask = test_X.dtypes==object
+                            categorical_cols = test_X.columns[categorical_feature_mask].tolist()
+                            test_X.drop(test_X[list(test_X[categorical_cols].nunique().where(lambda x: x>15).dropna().index)].columns,axis=1,inplace =True)
+                            categorical_feature_mask = test_X.dtypes==object
+                            categorical_cols = test_X.columns[categorical_feature_mask].tolist()
+                            #st.dataframe(X)
+                            #st.text(categorical_cols)
+                            le = LabelEncoder()
+                            test_X[categorical_cols] = test_X[categorical_cols].apply(lambda col: le.fit_transform(col.astype(str)))
+                            #st.dataframe(X[categorical_cols])
+                            #X = X.drop(X[X[categorical_cols].nunique()>15].index,inplace = true)
+                            treatoutliers(test_X[test_X.columns.difference(categorical_cols)])
+                            #scaler = preprocessing.Standa
+                            
+                            #st.subheader(" Processed Data")
+                            #st.dataframe(test_X.head(100))
+                            #XY = X.drop(columns=selected_Target_columns)
+                            #Model_select = st.multiselect("Select Model",model_names)
+                            #for Model in model_names:
+                                #if Model in model_dict:
+                            #st.dataframe(model_dict)
+                            #st.write(Model_select[0])
+                            #nmod = model_dict[str(Model_select[0])]
+                            
+                            #prediction = model.predict(test_X)
+                            #test_Xy['Prediction'] = prediction
+                            #st.subheader(" Predictions ")
+                            #st.dataframe(test_Xy)
             else:         
-                st.dataframe(Y)
+                st.table(Y.head())
+                
                 #st.subheader("Automated Traditional Model Building")
                 #seed =123
                 #models =[]
@@ -519,8 +653,24 @@ def main():
                 ABG['importance']=model_XG.feature_importances_
                 ABG['Variable']= X.columns
                 ABG_D = ABG.sort_values(by=['importance'],ascending = False)
-                X_imp = ABG_D.head(6)
+                X_imp = ABG_D.head(13)
                 X_imp_l = X_imp['Variable'].tolist()
+                #importances = model_XG.feature_importances_
+                #indices = np.argsort(importances)
+                X_imp.set_index("Variable")
+                st.subheader("Important Factors")
+                st.table(X_imp)
+                st.subheader("Important Factors - Visual Representation")
+                #sns.barplot(x="importance", y="Variable", data=X_imp)
+                #st.pyplot()
+                #st.bar_chart(X_imp)
+                sns.barplot(x="importance", y="Variable", data=X_imp)
+                #plt.figure(figsize=(10,10))
+                #plt.rcParams["figure.figsize"] = (20,10)
+                #fig = plt.figure(figsize=(18, 18))
+                plt.xticks(size = 15)
+                plt.yticks(size = 15)
+                st.pyplot()
                 #st.write(X_imp_l)
                 #for name,model in models:
                     #kfold =model_selection.KFold(n_splits = 10, random_state = seed)
@@ -543,11 +693,11 @@ def main():
                     #fit.append(model.fit)
                     #model_dict = dict(zip(model_names,fit))
             
-                #if st.checkbox("Accuracy Metrics"):
+                #if st.button("Accuracy Metrics"):
                 #st.dataframe(pd.DataFrame(zip(model_names,model_rmse_c1,model_rmse,model_mape_line),columns =['Model Name','R Square','RMSE ',' MAPE']))
 
-                st.subheader("Advanced Prediction Model Building")
-                if st.checkbox("Advanced Prediction Model"):
+                #st.subheader("Advanced Prediction Model Building")
+                if st.button("Advanced Prediction Model"):
                     all_x = brute_force_combinations(X_imp_l)
                     #all_x = list(all_x)
                     #st.dataframe(all_x[0])
@@ -556,8 +706,9 @@ def main():
                     models.append(("Linear Regression",LinearRegression()))
                     models.append(("Decision Tree",DecisionTreeRegressor()))
                     models.append(("Ensemble",RandomForestRegressor()))
-                    models.append(("Support Vector Machine",SVR()))
+                    #models.append(("Support Vector Machine",SVR()))
                     models.append(("XGBoost",XGBRegressor(objective="reg:linear",random_state=123)))
+                    st.write("Models Estimated",len(all_x)*len(models))
                     all_models_adv =[]
                     model_names_adv = []
                     model_r2 =[]
@@ -567,6 +718,8 @@ def main():
                     feat = []
                     for name,model in models:
                         for i in range(len(all_x)):
+                            if i%100==0:
+                                st.write(name," -",len(all_x),"+ models completed")
                             final_features = all_x[i]
                             X2 = X[final_features]
                             #X= pd.get_dummies(X, prefix=None, prefix_sep='_', dummy_na=True, drop_first=True, dtype=None)
@@ -590,39 +743,103 @@ def main():
                             model_mape.append(mape)
                             model_rmse.append(rmse)
                             feat.append(final_features)
-                            st.write(name,"|","Iteration",i,"MAPE",mape,"RMSE",rmse,"|","Model Done")
+                            
                             #st.write(len(model_names_adv))
                             
-                    st.dataframe(pd.DataFrame(zip(model_names_adv,feat,model_mape,model_rmse),columns =['Model Name','Features','MAPE','RMSE']).sort_values('MAPE',ascending=True))
-                    st.text(len(model_names_adv))       
-                    #result_df = pd.DataFrame(zip(data,names=["Model","Model_intercept", "Features", "r2_score", "MSE","RMSE"]))
-                    #st.dataframe(all_combinations.head())
-
-        st.subheader("Prediction on your data")    
-        if st.checkbox("Predictions on your data"):
-            New_data = st.file_uploader("Upload New Dataset",type=["csv","txt"])
-            if New_data is not None:
-                New_df=pd.read_csv(New_data)
-                st.dataframe(New_df.head())
-                test_X = New_df.drop(columns=selected_columns)
-                test_X.replace(np.nan,0,inplace=True)
-                test_X = pd.get_dummies(test_X,dummy_na=True, drop_first=True)
-                
-                st.subheader(" Processed Data")
-                st.dataframe(test_X.head(100))
-                #XY = X.drop(columns=selected_Target_columns)
-                Model_select = st.multiselect("Select Model",model_names)
-                #for Model in model_names:
-                    #if Model in model_dict:
-                #st.dataframe(model_dict)
-                st.write(Model_select[0])
-                nmod = model_dict[str(Model_select[0])]
-                
-                prediction = nmod.predict(test_X)
-                test_X['Prediction'] = prediction
-                st.dataframe(test_X)
+                    st.table(pd.DataFrame(zip(model_names_adv,feat,model_mape,model_rmse),columns =['Model Name','Features','MAPE','RMSE']).sort_values('MAPE',ascending=True).head())
+                    st.text(len(model_names_adv))
                     
-                                                   
+                    result_df = pd.DataFrame(zip(model_names_adv,feat,model_mape,model_rmse),columns =['Model Name','Features','MAPE','RMSE']).sort_values('MAPE',ascending=True)
+                    #collist = result_df.iloc[0][[1]]
+                    #import pickle
+                    ft = result_df.head(1)['Features']
+                    em =[]
+                    for row in ft:
+                        for elem in row:
+                           em.append(elem)
+                    Xf = X[em]
+                    md = result_df.head(1)['Model Name'].tolist()
+                    ms = md[0]
+                    mdl = 0
+                    for name,model in models:
+                        if name in ms:
+                            X_train_f,X_test_f,y_train_f,y_test_f = train_test_split(Xf,Y,test_size = 0.20,random_state =123)
+                            model.fit(X_train_f,y_train_f)
+                            #filename = name + 'finalized_model.sav'
+                            #pickle.dump(model, open(filename, 'wb'))
+
+                #st.subheader("Prediction on your data")
+                if st.button("Predictions on your data"):
+                
+                    ft = result_df.head(1)['Features']
+                    em =[]
+                    for row in ft:
+                        for elem in row:
+                           em.append(elem)
+                    Xf = X[em]
+                    md = result_df.head(1)['Model Name'].tolist()
+                    ms = md[0]
+                    mdl = 0
+                    for name,model in models:
+                        if name in ms:
+                            X_train_f,X_test_f,y_train_f,y_test_f = train_test_split(Xf,Y,test_size = 0.20,random_state =123)
+                            model.fit(X_train_f,y_train_f)
+                            mdl = model
+                    New_data_latest = st.file_uploader("Upload New Dataset",type=["csv","txt"])
+                    if New_data_latest is not None:
+                        New_df_latest =pd.read_csv(New_data)
+                        st.dataframe(New_df_latest.head())
+                        New_df = New_df_latest[em]
+                        test_Xy = New_df.drop(columns=selected_columns)
+                        ftlst = ft.tolist()
+                        test_Xy
+                        test_X = test_Xy[em]
+                        test_X.replace(np.nan,0,inplace=True)
+                        test_X.fillna(0)
+                        org_col = test_X.columns
+                        #X.drop(lambda x: x if (x.nunique()>15)
+                        #X = X.drop(lambda x: x.nunique()>15, axis=1)
+                        categorical_feature_mask = test_X.dtypes==object
+                        categorical_cols = test_X.columns[categorical_feature_mask].tolist()
+                        test_X.drop(test_X[list(test_X[categorical_cols].nunique().where(lambda x: x>15).dropna().index)].columns,axis=1,inplace =True)
+                        categorical_feature_mask = test_X.dtypes==object
+                        categorical_cols = test_X.columns[categorical_feature_mask].tolist()
+                        #st.dataframe(X)
+                        #st.text(categorical_cols)
+                        le = LabelEncoder()
+                        try:
+                            test_X[categorical_cols] = test_X[categorical_cols].apply(lambda col: le.fit_transform(col.astype(str)))
+                        except:
+                            None
+                        #st.dataframe(X[categorical_cols])
+                        #X = X.drop(X[X[categorical_cols].nunique()>15].index,inplace = true)
+                        treatoutliers(test_X[test_X.columns.difference(categorical_cols)])
+                        #scaler = preprocessing.Standa
+                        
+                        #st.subheader(" Processed Data")
+                        #st.dataframe(test_X.head(100))
+                        #XY = X.drop(columns=selected_Target_columns)
+                        #Model_select = st.multiselect("Select Model",model_names)
+                        #for Model in model_names:
+                            #if Model in model_dict:
+                        #st.dataframe(model_dict)
+                        #st.write(Model_select[0])
+                        #nmod = model_dict[str(Model_select[0])]
+                        
+                        prediction = model.predict(test_X)
+                        test_Xy['Prediction'] = prediction
+                        st.subheader(" Predictions ")
+                        st.dataframe(test_Xy)
+                                
+    
+                            
+                      
+                
+            
+
+        
+                    
+                                                       
                             
                        
                 
@@ -631,7 +848,7 @@ def main():
         
     #elif choice =='Model Building':
         #st.subheader("Model Building")
-        #if st.checkbox("Select target columns"):
+        #if st.button("Select target columns"):
             #all_columns = new_df.columns
             #selected_Target_columns = st.multiselect("Select Columns",all_columns)
             #Y = new_df[selected_Target_columns]
