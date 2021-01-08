@@ -65,10 +65,10 @@ def main():
     st.write('<style>h1{color: white; text-align: left;font-family: sans-serif;font-size: 45px}</style>', unsafe_allow_html=True)
     st.write('<style>h2{color: white; text-align: center;font-family: sans-serif;}</style>', unsafe_allow_html=True)
 
-    st.write('<style>h3{color: white;text-align: left;font-family: sans-serif;font-size: 11px}</style>', unsafe_allow_html=True)
-    st.write('<style>body{color: white;font-family: sans-serif;text-align: left;}</style>', unsafe_allow_html=True)
-    st.write('<style>table{color: white;font-family: sans-serif;text-align: center;background-color: #eee}</style>', unsafe_allow_html=True)
-    st.markdown( '<style>h2{ color: white; font-family: sans-serif;text-align: center; }</style>'
+    st.write('<style>h3{color: black;text-align: left;font-family: sans-serif;font-size: 11px}</style>', unsafe_allow_html=True)
+    st.write('<style>body{color: black;font-family: sans-serif;text-align: left;}</style>', unsafe_allow_html=True)
+    st.write('<style>table{color: black;font-family: sans-serif;text-align: center;background-color: #eee}</style>', unsafe_allow_html=True)
+    st.markdown( '<style>h2{ color: black; font-family: sans-serif;text-align: center; }</style>'
 , unsafe_allow_html=True)
     #st.markdown( '<style>label{ color: white; font-family: sans-serif; }</style>',unsafe_allow_html=True) 
     
